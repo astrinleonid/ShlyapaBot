@@ -18,7 +18,7 @@ import time
 from datetime import datetime
 
 
-import whisper
+# import whisper
 
 from telebot import types
 from tokens import tokens
