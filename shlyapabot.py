@@ -155,7 +155,7 @@ def botactions(bot):
     @bot.message_handler(commands=['save'])
     def save_file(message):
         chat_id = message.chat.id
-        log_message = f"Сохраняю {w_dict[chat_id].words_left(level = 'any', renew = False)} слов"
+        log_message = f"Сохраняю {len(w_dict[chat_id].words)} слов"
         print(log_message)
         with open(dict_file, 'w') as file:
           w_dict[chat_id].to_json(file)
