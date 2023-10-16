@@ -82,10 +82,17 @@ class AliasDictionary:
     return word
 
   def find_word(self, target):
-    for word in self.words:
+    for i, word in enumerate(self.words):
       if word.word == target:
-        return word.definition
+        self.current_word = i
+        return word
     return False
+
+  def delete_word(self):
+    if type(self.current_word) != type(None):
+      self.words.pop(self.current_word)
+    else:
+      print("Error: nothing to delete")
 
   def to_json(self, file):
     temp_dict = []
@@ -171,9 +178,6 @@ def formatted_message(result):
 
   return f"""Слово : {result['word']}
 Значение : {result['definition']}
-Сохранить 1
-Не сохранять 2
-Другой вариант 3
-Сохранить и дать еще вариант 4"""
+"""
 
 

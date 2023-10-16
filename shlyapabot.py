@@ -53,7 +53,14 @@ BOT_TIMEOUT = 5
 now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 error_message = f"Bot started at {dt_string}"
+markup_dict_option = {"Сохранить": "option1",
+               "Не сохранять": "option2",
+               "Еще вариант": "option3",
+               "Сохранить и еще вариант": "option4"}
 
+markup_dict_saved = {"Редактировать": "option5",
+               "Удалить": "option6",
+               "Уровень сложности": "option7"}
 
 def bot_polling(token=telegram_token):
     global error_message
@@ -161,7 +168,7 @@ def botactions(bot):
             w_dict[chat_id] = AliasDictionary()
         with open(dict_file, 'r') as file:
           w_dict[chat_id].from_json(file)
-        log_message = f"Загружено {len(w_dict[chat_id].words)} слов"
+        log_message = f"Загружено {len(w_dict[chat_id].words)} слов. \nПоказать список: /list"
         bot.send_message(message.chat.id, log_message)
 
     @bot.message_handler(commands=['list'])
@@ -181,9 +188,7 @@ def botactions(bot):
 
           if result:
             temp_words[message.chat.id] = AliasWord(**result)
-            send_option_menu(message.chat.id, formatted_message(result))
-
-
+            send_option_menu(message.chat.id, formatted_message(result), markup_dict_option)
 
 
     # @bot.message_handler(content_types=['voice'])
@@ -220,16 +225,20 @@ def botactions(bot):
             pass
         bot.send_message(message.chat.id, f'Current mode: {user_modes[message.chat.id]}', parse_mode='html')
 
-    def send_option_menu(chat_id, prompt):
+    def send_option_menu(chat_id, prompt, markup_dict):
 
       markup = types.InlineKeyboardMarkup(row_width=1)
 
-      item1 = types.InlineKeyboardButton("Сохранить", callback_data="option_0")
-      item2 = types.InlineKeyboardButton("Не сохранять", callback_data="option_1")
-      item3 = types.InlineKeyboardButton("Еще вариант", callback_data="option_2")
-      item4 = types.InlineKeyboardButton("Сохранить и еще вариант", callback_data="option_3")
+      items = []
+      for command, callback in markup_dict.items():
+        items.append(types.InlineKeyboardButton(command, callback_data=callback))
+      # item2 = types.InlineKeyboardButton("Не сохранять", callback_data="option_1")
+      # item3 = types.InlineKeyboardButton("Еще вариант", callback_data="option_2")
+      # item4 = types.InlineKeyboardButton("Сохранить и еще вариант", callback_data="option_3")
 
-      markup.add(item1, item2, item3, item4)
+      markup.add(*items) #, item2, item3, item4)
+
+
 
       bot.send_message(chat_id, prompt, reply_markup=markup)
 
@@ -264,28 +273,38 @@ def botactions(bot):
       if call.message:
         chat_id = call.message.chat.id
         # bot.send_message(chat_id, call.data)
+        print(f"Processing callback: {call.data}")
         if call.data.startswith('option'):
           if call.data[-1] == '0' or call.data[-1] == '3':
               print(temp_words[chat_id])
               w_dict[chat_id].add_word(temp_words[chat_id])
               bot.send_message(chat_id, "Слово добавлено в словарь")
-          elif call.data[-1] == '1':
+          if call.data[-1] == '1':
               return True
           if call.data[-1] == '2' or call.data[-1] == '3':
               result = w_dict[chat_id].getWord( first = False)
 
               if result:
                 temp_words[chat_id] = AliasWord(**result)
-                send_option_menu(chat_id, formatted_message(result))
+                send_option_menu(chat_id, formatted_message(result), markup_dict_option)
               else:
                 bot.send_message(chat_id, "Больше вариантов нет")
+          if call.data[-1] == '5':
+              print("processing option 5")
+              bot.send_message(chat_id, "Это пока не реализовано")
+          if call.data[-1] == '6':
+              w_dict[chat_id].delete_word()
+              bot.send_message(chat_id, "Слово удалено")
+          if call.data[-1] == '7':
+              bot.send_message(chat_id, "Это пока не реализовано")
+
 
         elif call.data.startswith('word'):
           if chat_id not in w_dict:
-              bot.send_message(chat_id, "Словарь пуст\n Добавьте слова или загрузите из файла: /load")
+              bot.send_message(chat_id, "Словарь пуст или слово не найдено\n Загрузить словарь из файла: /load")
               return
           word = w_dict[chat_id].find_word(call.data[5:])
-          bot.send_message(chat_id, word)
+          send_option_menu(chat_id, formatted_message({'word': word.word, 'definition': word.definition}), markup_dict_saved)
 
         elif call.data.startswith('more'):
           send_word_list(chat_id)
