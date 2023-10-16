@@ -53,10 +53,10 @@ BOT_TIMEOUT = 5
 now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 error_message = f"Bot started at {dt_string}"
-markup_dict_option = {"Сохранить": "option1",
-               "Не сохранять": "option2",
-               "Еще вариант": "option3",
-               "Сохранить и еще вариант": "option4"}
+markup_dict_option = {"Сохранить": "option0",
+               "Не сохранять": "option1",
+               "Еще вариант": "option2",
+               "Сохранить и еще вариант": "option3"}
 
 markup_dict_saved = {"Редактировать": "option5",
                "Удалить": "option6",
