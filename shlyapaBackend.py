@@ -26,12 +26,36 @@ class AliasWord:
 
 class AliasDictionary:
 
-  def __init__(self):
+  def __init__(self, name):
+
+    self.username = name
     self.words = []
+    self.mode = "shlyapa"
     self.available_levels = ['elementary', 'easy', 'medium', 'hard', 'evil', 'any']
     self.set_of_words_to_display = {}
-    self.chatGPT = ChatApp(openai_api_key)
+    self.reminder = {}
     self.GPTmodel = tokens['gpt_model']
+    self.chatGPT = ChatApp(self.GPTmodel)
+
+  def get_name(self):
+    return self.username
+
+  def set_name(self, name):
+    self.username = name
+
+  def set_model(self, model):
+    self.GPTmodel = model
+    print("Setting")
+    self.chatGPT.set_model(self.GPTmodel)
+
+  def list_models(self):
+    return self.chatGPT.list_models()
+
+  def get_model(self):
+    return self.chatGPT.model
+
+  def get_mode(self):
+    return self.mode
 
   def add_word(self, word, definition = None):
     if type(word) == str:
@@ -52,7 +76,7 @@ class AliasDictionary:
 
     template = prompt_template(first, word)
     print(f"Template: {template}\n\n")
-    response = self.chatGPT.chat(template, self.GPTmodel)
+    response = self.chatGPT.chat(template)
     print(f"Got response: {response}\n")
     result = parser(response)
 
@@ -108,9 +132,15 @@ class AliasDictionary:
       if not self.find_word(record['word']):
         self.words.append(AliasWord(**record))
 
+  def set_reminder(self, **kwargs):
+    for arg in kwargs:
+      self.reminder.update(kwargs)
 
-  # def word_displayed(left):
-
+  def get_reminder(self):
+    prompt = f"Твоя задача помочь ученику вспомнить слово, которо он слышал, но не запомнил. Ученик говорит, что слово, звучит похоже на {self.reminder['similars']}, на вопрос о том, что слово значит или из какой оно области, ученик отвечает так: {self.reminder['meaning']} "
+    self.chatGPT.model = "gpt-4o"
+    return self.chatGPT.chat(prompt)
+    self.chatGPT.model = "gpt-4o-mini"
 """## Shlyapa backend"""
 
 def parser(text):
@@ -141,7 +171,7 @@ def prompt_template_ru(first, word = ''):
   # excluded = f"Известно, что не имеется в виду ни одно из слов из списка: {', '.join(tried_words)}" if len(tried_words) > 0 else ''
   if first:
     return f"""
-                  Я дам слово на русском языке, существительное в именительном падеже.
+                  Я дам слово на русском языке, существительное в именительном падеже в единственном числе.
                   Вероятнее всего, слово написано с ошибками или опечаткам.
                   Твоя задача:
                   1) Предположить, какое слово имеется в виду, и дать его правильное написание. Предлагай только слова, которые есть в русском языке.
@@ -160,7 +190,7 @@ def prompt_template(first, word = ''):
                   The word may or may not be spelled correctly.
                   Your task is:
                   1) Suggest an option for the correct spelling of the word.
-                  The option you suggest should be a noun in the nominative case, not a private name or geographical name,
+                  The option you suggest should be a noun in the nominative case, singular, not a private name or geographical name,
                   existing in the Russian language
                   2) Give a definition in Russian of the most common meaning of the word you suggested
                   Your answer should be exactly in the following format:
@@ -169,7 +199,7 @@ def prompt_template(first, word = ''):
             """
   else:
     return  """  Thanks, but I meant different word.
-                Suggest another option. Do not repeat the words, already mentionet in this conversation.
+                Suggest another option. Do not repeat the words, already mentioned in this conversation.
                 Give an answer in the same format.
                 If you don't have any reasonable options to suggest, respond: no more options.
             """

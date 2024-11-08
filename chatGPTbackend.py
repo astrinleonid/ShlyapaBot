@@ -1,29 +1,49 @@
 "## ChatGPT"
-import openai
+from openai import OpenAI, api_key
 from tokens import tokens
 
-openai_api_key = tokens['openai']
 
 "### Class"
 
 class ChatApp:
-    def __init__(self, openai_api_key):
+    def __init__(self, model):
         # Setting the API key to use the OpenAI API
-        openai.api_key = openai_api_key
+        self.client = OpenAI(api_key=tokens['openai'])
+        self.model = tokens['gpt_model'][0]
         self.messages = []
 
-    def chat(self, message, model="gpt-4"):
+    def chat(self, message, **kwargs):
         self.messages.append({"role": "user", "content": message})
-        response = openai.ChatCompletion.create(
-            model = model,
+        model = kwargs['model'] if 'model' in kwargs else self.model
+        response = self.client.chat.completions.create(
+            model=self.model,
             messages=self.messages
-        )
-        self.messages.append({"role": "assistant", "content": response["choices"][0]["message"].content})
-        return response["choices"][0]["message"]["content"]
+            )
+        ai_resp = response.choices[0].message.content
+        self.messages.append({"role": "assistant", "content": ai_resp})
+        return ai_resp
 
     def new_chat(self):
         self.messages = []
         print(f"Chat reset, messages {self.messages}")
+    def list_models(self):
+        """Lists all available GPT models."""
+        return tokens['gpt_model']
 
+    def set_model(self, model):
+        print(f"Setting model to {model}")
+        assert model in tokens['gpt_model'], f"Incorrect model provided {model}"
+        print("Model found")
+        self.model = model
+        print(f"Model set to {self.model}")
 
+def test_chat_class():
+    chat = ChatApp(model="gpt-4")
+    print(chat.chat("What do you think about Trump being elected a president?"))
+    print(chat.chat("What other candidates can you name?"))
 
+    # List available models
+    chat.list_models()
+
+if __name__ == "__main__":
+    test_chat_class()
