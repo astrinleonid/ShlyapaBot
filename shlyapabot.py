@@ -99,7 +99,7 @@ def botactions(bot):
 
             To register: /user
             To add word: type or say
-            To list saved words: /list
+            Remind the word /remind
       """
         bot.send_message(message.chat.id, greeting, parse_mode='html')
 
@@ -210,9 +210,17 @@ def botactions(bot):
 
     @bot.message_handler(commands=['list'])
     def output_word_list(message):
-        if message.chat_id not in w_dict:
+        if message.chat.id not in w_dict:
             bot.send_message(message.chat.id, "Сначала зарегистрируйтесь")
         send_word_list(message.chat.id)
+
+    @bot.message_handler(commands=['list all'])
+    def output_all_lists(message):
+        list_of_words = {user.username : [word.word for word in user.words] for chat_id, user in w_dict.items()}
+        for user, list in list_of_words.items():
+            bot.send_message(message.chat.id, f"Слова {user}:")
+            bot.send_message(message.chat.id, " ".join(list))
+
 
     @bot.message_handler(commands=['remind'])
     def register_user(message):
