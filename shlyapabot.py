@@ -214,7 +214,7 @@ def botactions(bot):
             bot.send_message(message.chat.id, "Сначала зарегистрируйтесь")
         send_word_list(message.chat.id)
 
-    @bot.message_handler(commands=['list all'])
+    @bot.message_handler(commands=['listall'])
     def output_all_lists(message):
         list_of_words = {user.username : [word.word for word in user.words] for chat_id, user in w_dict.items()}
         for user, list in list_of_words.items():
