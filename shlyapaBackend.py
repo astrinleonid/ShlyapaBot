@@ -6,6 +6,8 @@ from tokens import tokens
 ## Shlyapa Dictionary Classes
 
 
+
+
 class AliasWord:
 
   def __init__(self, word, definition, available_levels = None, level = None) :
@@ -14,7 +16,6 @@ class AliasWord:
     self.definition = definition
     self.available_levels = available_levels
     self.level = level
-
 
   def set_level(self, level):
 
@@ -36,6 +37,7 @@ class AliasDictionary:
     self.reminder = {}
     self.GPTmodel = tokens['gpt_model']
     self.chatGPT = ChatApp(self.GPTmodel)
+    self.reminder = {'similars' : "", 'meaning' : ""}
 
   def get_name(self):
     return self.username
@@ -126,6 +128,14 @@ class AliasDictionary:
                         'level': word.level})
     return json.dump(temp_dict, file)
 
+  def pack(self):
+    temp_dict = []
+    for word in self.words:
+      temp_dict.append({'word': word.word,
+                        'definition': word.definition,
+                        'level': word.level})
+    return temp_dict
+
   def from_json(self,file):
     records = json.load(file)
     for record in records:
@@ -136,11 +146,18 @@ class AliasDictionary:
     for arg in kwargs:
       self.reminder.update(kwargs)
 
-  def get_reminder(self):
-    prompt = f"Твоя задача помочь ученику вспомнить слово, которо он слышал, но не запомнил. Ученик говорит, что слово, звучит похоже на {self.reminder['similars']}, на вопрос о том, что слово значит или из какой оно области, ученик отвечает так: {self.reminder['meaning']} "
-    self.chatGPT.model = "gpt-4o"
-    return self.chatGPT.chat(prompt)
-    self.chatGPT.model = "gpt-4o-mini"
+  def get_reminder(self, prompt = False):
+    if not prompt:
+      self.chatGPT.new_chat()
+      prompt = f"""Твоя задача помочь ученику вспомнить слово, 
+      которое он слышал, но не запомнил. Ученик говорит, что слово 
+      звучит похоже на {self.reminder['similars']}. 
+      На вопрос о том, что слово значит или из какой оно области, ученик отвечает так: 
+      {self.reminder['meaning']}. 
+      Дай ответ в формате \n### <слово> \n#### <значение слова>
+      """
+    return parser(self.chatGPT.chat(prompt))
+
 """## Shlyapa backend"""
 
 def parser(text):
