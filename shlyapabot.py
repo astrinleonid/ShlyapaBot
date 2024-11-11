@@ -351,7 +351,7 @@ def botactions(bot):
         if name == '1':
             name = message.chat.username
 
-        for chatID, user in w_dict:
+        for chatID, user in w_dict.items():
             if name == user.get_name():
                 bot.send_message(message.chat.id, "Такое имя в системе уже есть, если это вы, то зайдите, пожалуйста, с того же эккаунта, что и в прошлый раз, или зарегистрируйтесь заново под другим именем")
         w_dict[message.chat.id] = AliasDictionary(name)
