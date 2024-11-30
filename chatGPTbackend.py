@@ -6,10 +6,10 @@ from tokens import tokens
 "### Class"
 
 class ChatApp:
-    def __init__(self, model):
+    def __init__(self, **kwargs):
         # Setting the API key to use the OpenAI API
         self.client = OpenAI(api_key=tokens['openai'])
-        self.model = tokens['gpt_model'][0]
+        self.model = kwargs['model'] if 'model' in kwargs else tokens['gpt_model'][0]
         self.messages = []
 
     def chat(self, message, **kwargs):
@@ -23,8 +23,10 @@ class ChatApp:
         self.messages.append({"role": "assistant", "content": ai_resp})
         return ai_resp
 
-    def new_chat(self):
+    def new_chat(self, **kwargs):
         self.messages = []
+        if 'system' in kwargs:
+            self.messages.append({"role": "system", "content" : kwargs['system']})
         print(f"Chat reset, messages {self.messages}")
     def list_models(self):
         """Lists all available GPT models."""
